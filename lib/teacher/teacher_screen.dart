@@ -4,7 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'global.dart';
+import '../main/global.dart';
 
 class TeacherAnswersScreen extends StatefulWidget {
   @override
@@ -41,7 +41,8 @@ class _TeacherAnswersScreenState extends State<TeacherAnswersScreen> {
         isLoading = false;
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Не удалось загрузить ответы: ${response.body}")),
+        SnackBar(
+            content: Text("Не удалось загрузить ответы: ${response.body}")),
       );
     }
   }
@@ -86,13 +87,51 @@ class _TeacherAnswersScreenState extends State<TeacherAnswersScreen> {
                     return Card(
                       margin: EdgeInsets.all(10),
                       elevation: 4,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                       child: ListTile(
-                        title: Text("${item['username']} — Урок ${item['lessonId']}"),
+                        title: Text(
+                            "${item['username']} — Урок ${item['lessonId']}"),
                         subtitle: Text("Оценка: ${item['score']}"),
-                        trailing: item['teacherFeedback'] != null
+                        trailing: item['teacherFeedback'] == 'approved'
                             ? Icon(Icons.check_circle, color: Colors.green)
-                            : Icon(Icons.pending_actions, color: Colors.grey),
+                            : IconButton(
+                                icon: Icon(Icons.check,
+                                    color: Colors.orangeAccent),
+                                tooltip: 'Approve',
+                                onPressed: () async {
+                                  final prefs =
+                                      await SharedPreferences.getInstance();
+                                  final token = prefs.getString('token');
+
+                                  final response = await http.post(
+                                    Uri.parse(
+                                        "http://$ip:5000/teacher/approve-answer"),
+                                    headers: {
+                                      'Authorization': 'Bearer $token',
+                                      'Content-Type': 'application/json'
+                                    },
+                                    body: jsonEncode({
+                                      'email': item['email'],
+                                      'lessonId': item['lessonId']
+                                    }),
+                                  );
+
+                                  if (response.statusCode == 200) {
+                                    setState(() {
+                                      item['teacherFeedback'] = 'approved';
+                                    });
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(content: Text('Approved')),
+                                    );
+                                  } else {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                          content: Text('Failed to approve')),
+                                    );
+                                  }
+                                },
+                              ),
                       ),
                     );
                   },

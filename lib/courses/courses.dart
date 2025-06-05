@@ -1,4 +1,4 @@
-import 'package:bnm_edu/lessons.dart';
+import 'package:bnm_edu/courses/lessons.dart';
 import 'package:flutter/material.dart';
 
 class CoursesScreen extends StatelessWidget {

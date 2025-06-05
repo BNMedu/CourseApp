@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-import 'global.dart';
+import '../main/global.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
   @override

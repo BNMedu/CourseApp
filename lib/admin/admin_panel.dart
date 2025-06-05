@@ -1,7 +1,9 @@
 import 'dart:convert';
 
-import 'package:bnm_edu/admin_registration.dart';
-import 'package:bnm_edu/global.dart';
+import 'package:bnm_edu/admin/admin_edit.dart';
+import 'package:bnm_edu/admin/admin_news_edit.dart';
+import 'package:bnm_edu/admin/admin_registration.dart';
+import 'package:bnm_edu/main/global.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -65,7 +67,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token");
 
-    final url = Uri.parse('http://$ip:5000/course/'); // ⚠️ Для Android эмулятора
+    final url = Uri.parse('http://$ip:5000/course/');
     final body = {
       "_id": _idController.text.trim(),
       "title": _titleController.text.trim(),
@@ -128,6 +130,29 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
     );
   }
 
+  Widget _buildNavIcon({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CircleAvatar(
+            radius: 24,
+            backgroundColor: Colors.white,
+            child: Icon(icon, color: Colors.deepPurple, size: 28),
+          ),
+          SizedBox(height: 6),
+          Text(label,
+              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -150,14 +175,17 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
             buildTextField(_idController, 'Course ID'),
             buildTextField(_videoIdController, 'Video ID'),
             buildTextField(_titleController, 'Lesson Title'),
-            buildTextField(_descriptionController, 'Lesson Description', maxLines: 3),
+            buildTextField(_descriptionController, 'Lesson Description',
+                maxLines: 3),
             buildTextField(_courseTitleController, 'Course Title'),
             buildTextField(_videoUrlController, 'Video URL'),
             SizedBox(height: 12),
             Divider(),
-            Text('Add Question', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+            Text('Add Question',
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
             buildTextField(_questionTextController, 'Question Text'),
-            for (int i = 0; i < 4; i++) buildTextField(_optionControllers[i], 'Option ${i + 1}'),
+            for (int i = 0; i < 4; i++)
+              buildTextField(_optionControllers[i], 'Option ${i + 1}'),
             SizedBox(height: 10),
             DropdownButton<int>(
               value: _correctAnswerIndex,
@@ -175,7 +203,8 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               child: Text('Add Question'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color.fromARGB(255, 202, 138, 213),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
             ),
             SizedBox(height: 20),
@@ -189,26 +218,85 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                 backgroundColor: Colors.blueAccent,
                 foregroundColor: Colors.white,
                 minimumSize: Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
               ),
             ),
-            SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => RegisterScreen()),
-                );
-              },
-              icon: Icon(Icons.person_add),
-              label: Text('Go to Registration'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurpleAccent,
-                foregroundColor: Colors.white,
-                minimumSize: Size(double.infinity, 50),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            SizedBox(height: 30),
+
+            // Navigation block
+            Card(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
+              elevation: 8,
+              margin: EdgeInsets.symmetric(horizontal: 10),
+              child: Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blueAccent, Color.fromARGB(255, 202, 138, 213)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _buildNavIcon(
+                      icon: Icons.person_add,
+                      label: 'Register',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => RegisterScreen()),
+                        );
+                      },
+                    ),
+                    _buildNavIcon(
+                      icon: Icons.edit,
+                      label: 'Edit User',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => AdminEditScreen()),
+                        );
+                      },
+                    ),
+                    _buildNavIcon(
+                      icon: Icons.add_box,
+                      label: 'Add Course',
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text("You are already here")),
+                        );
+                      },
+                    ),
+                    _buildNavIcon(
+                      icon: Icons.newspaper,
+                      label: 'Edit News',
+                      onTap: () async {
+                        final prefs = await SharedPreferences.getInstance();
+                        final token = prefs.getString('jwt_token');
+                        if (token == null) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('No token found')),
+                          );
+                          return;
+                        }
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => AdminAddNewsScreen(token: token),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
               ),
             ),
+            SizedBox(height: 30),
           ],
         ),
       ),

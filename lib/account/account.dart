@@ -1,12 +1,12 @@
 import 'dart:convert';
 
-import 'package:bnm_edu/change_password.dart';
-import 'package:bnm_edu/edit_profile.dart';
+import 'package:bnm_edu/account/change_password.dart';
+import 'package:bnm_edu/account/edit_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'global.dart';
+import '../main/global.dart';
 
 class AccountScreen extends StatefulWidget {
   @override
@@ -73,6 +73,14 @@ class _AccountScreenState extends State<AccountScreen> {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
         child: AppBar(
+          actions: [
+            IconButton(
+              icon: Icon(Icons.settings),
+              onPressed: () {
+                Navigator.pushNamed(context, '/settings');
+              },
+            ),
+          ],
           elevation: 0,
           centerTitle: true,
           title: Text("Profile", style: TextStyle(fontWeight: FontWeight.bold)),
@@ -116,10 +124,12 @@ class _AccountScreenState extends State<AccountScreen> {
                     SizedBox(height: 16),
                     Text(
                       username ?? 'Loading...',
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      style:
+                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
                     if (role != null)
-                      Text('Role: $role', style: TextStyle(color: Colors.grey[600])),
+                      Text('Role: $role',
+                          style: TextStyle(color: Colors.grey[600])),
                     SizedBox(height: 20),
                     Divider(),
                     if (birthDate != null)
@@ -131,9 +141,9 @@ class _AccountScreenState extends State<AccountScreen> {
                     if (course != null)
                       buildInfoTile(Icons.book, "Course", course!),
                     if (father != null && mother != null)
-                      buildInfoTile(Icons.family_restroom, "Parents", "$father & $mother"),
+                      buildInfoTile(Icons.family_restroom, "Parents",
+                          "$father & $mother"),
                     SizedBox(height: 10),
-
                     ElevatedButton.icon(
                       onPressed: () async {
                         final updated = await Navigator.push(
@@ -164,12 +174,12 @@ class _AccountScreenState extends State<AccountScreen> {
                       ),
                     ),
                     SizedBox(height: 10),
-
                     ElevatedButton.icon(
                       onPressed: () {
                         Navigator.push(
                           context,
-                          MaterialPageRoute(builder: (_) => ChangePasswordScreen()),
+                          MaterialPageRoute(
+                              builder: (_) => ChangePasswordScreen()),
                         );
                       },
                       icon: Icon(Icons.lock),
@@ -184,10 +194,10 @@ class _AccountScreenState extends State<AccountScreen> {
                       ),
                     ),
                     SizedBox(height: 10),
-
                     ElevatedButton.icon(
                       onPressed: () async {
-                        SharedPreferences prefs = await SharedPreferences.getInstance();
+                        SharedPreferences prefs =
+                            await SharedPreferences.getInstance();
                         await prefs.remove('token');
                         Navigator.pushReplacementNamed(context, '/');
                       },

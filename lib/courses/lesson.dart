@@ -5,7 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:youtube_player_iframe/youtube_player_iframe.dart';
 
-import 'global.dart';
+import '../main/global.dart';
 
 class LessonScreen extends StatefulWidget {
   final String videoUrl;

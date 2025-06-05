@@ -4,8 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../main/global.dart';
 import 'analytics.dart';
-import 'global.dart';
 import 'lesson.dart';
 
 class CourseDetailScreen extends StatefulWidget {
@@ -39,6 +39,29 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     fetchUserRole();
   }
 
+  Future<List<String>> fetchApprovedLessons() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+    if (token == null) return [];
+
+    final response = await http.get(
+      Uri.parse("http://$ip:5000/account"),
+      headers: {'Authorization': 'Bearer $token'},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      final answers = data['answers'] ?? [];
+      final approvedLessons = answers
+          .where((a) => a['teacherFeedback'] == 'approved')
+          .map<String>((a) => a['lessonId'].toString())
+          .toList();
+      return approvedLessons;
+    }
+
+    return [];
+  }
+
   Future<void> fetchProgress() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
@@ -53,6 +76,9 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       final data = jsonDecode(response.body);
       final progress = data['progress'][courseKey];
       completedLessons = List<String>.from(progress?['lessonsCompleted'] ?? []);
+      final approved = await fetchApprovedLessons();
+      completedLessons.addAll(approved);
+      completedLessons = completedLessons.toSet().toList(); // Убираем дубли
       completedLessons = completedLessons.toSet().toList();
       setState(() {});
     } else {
@@ -149,7 +175,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             children: [
               if (userRole == 'teacher')
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pushNamed(context, '/teacher-answers');

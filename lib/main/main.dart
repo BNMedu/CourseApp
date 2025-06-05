@@ -1,12 +1,13 @@
-import 'package:bnm_edu/account.dart';
-import 'package:bnm_edu/admin_panel.dart';
-import 'package:bnm_edu/auth_service.dart';
-import 'package:bnm_edu/courses.dart';
-import 'package:bnm_edu/forgot_password.dart';
-import 'package:bnm_edu/login.dart';
-import 'package:bnm_edu/news.dart';
-import 'package:bnm_edu/reset_password.dart';
-import 'package:bnm_edu/teacher_screen.dart';
+import 'package:bnm_edu/account/account.dart';
+import 'package:bnm_edu/account/settings.dart';
+import 'package:bnm_edu/admin/admin_panel.dart';
+import 'package:bnm_edu/courses/courses.dart';
+import 'package:bnm_edu/login/forgot_password.dart';
+import 'package:bnm_edu/login/login.dart';
+import 'package:bnm_edu/login/reset_password.dart';
+import 'package:bnm_edu/main/auth_service.dart';
+import 'package:bnm_edu/news/news.dart';
+import 'package:bnm_edu/teacher/teacher_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -36,6 +37,7 @@ class MyApp extends StatelessWidget {
         '/forgotPassword': (context) => ForgotPasswordScreen(),
         '/resetPassword': (context) => ResetPasswordScreen(),
         '/teacher-answers': (context) => TeacherAnswersScreen(),
+        '/settings':(context)=> SettingsScreen()
 
       },
     );

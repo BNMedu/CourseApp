@@ -1,4 +1,4 @@
 // lib/global.dart
 
-String? ip = "192.168.1.74";
+String? ip = "10.202.9.124";
 String? globalRole;

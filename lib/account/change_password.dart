@@ -4,76 +4,59 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'global.dart';
+import '../main/global.dart';
 
-class EditProfileScreen extends StatefulWidget {
-  final String? username, birthDate, city, phone, course, father, mother;
-
-  EditProfileScreen({
-    this.username,
-    this.birthDate,
-    this.city,
-    this.phone,
-    this.course,
-    this.father,
-    this.mother,
-  });
-
+class ChangePasswordScreen extends StatefulWidget {
   @override
-  _EditProfileScreenState createState() => _EditProfileScreenState();
+  _ChangePasswordScreenState createState() => _ChangePasswordScreenState();
 }
 
-class _EditProfileScreenState extends State<EditProfileScreen> {
+class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   final _formKey = GlobalKey<FormState>();
-  late TextEditingController usernameController;
-  late TextEditingController birthDateController;
-  late TextEditingController cityController;
-  late TextEditingController phoneController;
+  final TextEditingController _currentPasswordController = TextEditingController();
+  final TextEditingController _newPasswordController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    usernameController = TextEditingController(text: widget.username);
-    birthDateController = TextEditingController(text: widget.birthDate);
-    cityController = TextEditingController(text: widget.city);
-    phoneController = TextEditingController(text: widget.phone);
-  }
-
-  Future<void> updateProfile() async {
+  Future<void> changePassword() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
 
     final response = await http.put(
-      Uri.parse('http://${ip}:5000/account/update'),
+      Uri.parse('http://${ip}:5000/account/change-password'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json'
       },
       body: jsonEncode({
-        "username": usernameController.text,
-        "birthDate": birthDateController.text,
-        "city": cityController.text,
-        "phone": phoneController.text,
+        'currentPassword': _currentPasswordController.text,
+        'newPassword': _newPasswordController.text,
       }),
     );
 
+    final data = jsonDecode(response.body);
+
     if (response.statusCode == 200) {
-      Navigator.pop(context, true);
-    } else {
-      final data = jsonDecode(response.body);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${data['message'] ?? 'Unknown error'}')),
+        SnackBar(content: Text('Password successfully changed')),
+      );
+      Navigator.pop(context);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: ${data['message']}')),
       );
     }
   }
 
-  Widget buildField(String label, TextEditingController controller) {
+  Widget buildField(String label, TextEditingController controller, bool isPassword) {
     return TextFormField(
       controller: controller,
       decoration: InputDecoration(labelText: label),
+      obscureText: isPassword,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Field "$label" cannot be empty';
+        }
+        if (label == 'New Password' && value.length < 6) {
+          return 'Password must be at least 6 characters';
         }
         return null;
       },
@@ -85,7 +68,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text("Edit Profile"),
+        title: Text("Change Password"),
         backgroundColor: Colors.transparent,
         flexibleSpace: Container(
           decoration: BoxDecoration(
@@ -118,19 +101,13 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                   key: _formKey,
                   child: ListView(
                     children: [
-                      buildField("Username", usernameController),
-                      buildField("Birthdate", birthDateController),
-                      buildField("City", cityController),
-                      buildField("Phone", phoneController),
-                      SizedBox(height: 10),
-                      Text("Course: ${widget.course ?? 'not specified'}"),
-                      Text("Father: ${widget.father ?? 'not specified'}"),
-                      Text("Mother: ${widget.mother ?? 'not specified'}"),
+                      buildField("Current Password", _currentPasswordController, true),
+                      buildField("New Password", _newPasswordController, true),
                       SizedBox(height: 20),
                       ElevatedButton(
                         onPressed: () {
                           if (_formKey.currentState!.validate()) {
-                            updateProfile();
+                            changePassword();
                           }
                         },
                         child: Text("Save"),

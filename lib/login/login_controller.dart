@@ -1,10 +1,11 @@
 import 'dart:convert';
 
+import 'package:bnm_edu/login/twoFactorVerify.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'global.dart';
+import '../main/global.dart';
 
 class LoginController {
   // Сохраняем токен в локальное хранилище
@@ -13,9 +14,9 @@ class LoginController {
     await prefs.setString('token', token);
   }
 
-  // Авторизация пользователя
+  // Авторизация пользователя с 2FA
   Future<bool> loginUser(BuildContext context, String username, String password) async {
-    final url = Uri.parse('http://${ip}:5000/login');
+    final url = Uri.parse('http://$ip:5000/login');
 
     try {
       final response = await http.post(
@@ -24,8 +25,31 @@ class LoginController {
         body: jsonEncode({"username": username, "password": password}),
       );
 
+      final responseBody = jsonDecode(response.body);
+
       if (response.statusCode == 200) {
-        final responseBody = jsonDecode(response.body);
+        if (responseBody['twoFactorRequired'] == true) {
+          final email = responseBody['email'];
+
+          // отправка 2FA кода на почту
+          await http.post(
+            Uri.parse('http://$ip:5000/send-2fa-code'),
+            headers: {"Content-Type": "application/json"},
+            body: jsonEncode({"email": email}),
+          );
+
+          // переход на экран ввода кода
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TwoFactorVerifyScreen(email: email),
+            ),
+          );
+
+          return true;
+        }
+
+        // Если 2FA не требуется — сохраняем токен и заходим
         String token = responseBody['token'];
         String role = responseBody['role'];
 
@@ -42,7 +66,6 @@ class LoginController {
 
         return true;
       } else {
-        final responseBody = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(responseBody['message'] ?? 'Login failed')),
         );
@@ -50,7 +73,7 @@ class LoginController {
       }
     } catch (error) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Ошибка подключения к серверу $error")),
+        SnackBar(content: Text("Connection error: $error")),
       );
       return false;
     }
