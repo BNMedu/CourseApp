@@ -45,7 +45,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     if (token == null) return [];
 
     final response = await http.get(
-      Uri.parse("http://$ip:5000/account"),
+      Uri.parse("http://$ip:5000/api/users/profile"),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -66,9 +66,8 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return;
-
     final response = await http.get(
-      Uri.parse("http://$ip:5000/progress"),
+      Uri.parse("http://$ip:5000/api/courses/progress/me"),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -92,7 +91,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     if (token == null) return;
 
     final response = await http.get(
-      Uri.parse("http://$ip:5000/account"),
+      Uri.parse("http://$ip:5000/api/account"),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -107,9 +106,21 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   Future<Map<String, dynamic>?> fetchLessonData(String lessonId) async {
-    final url = Uri.parse("http://$ip:5000/course/$lessonId");
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    final url = Uri.parse("http://$ip:5000/api/courses/$lessonId");
+    print("Requesting lesson: $lessonId, URL: $url");
     try {
-      final response = await http.get(url);
+      final response = await http.get(
+        url,
+        headers: {
+          if (token != null) 'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+      );
+      print('Response code: ${response.statusCode}');
+      print('Response body: ${response.body}');
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {

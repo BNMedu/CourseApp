@@ -15,8 +15,9 @@ class LoginController {
   }
 
   // Авторизация пользователя с 2FA
-  Future<bool> loginUser(BuildContext context, String username, String password) async {
-    final url = Uri.parse('http://$ip:5000/login');
+  Future<bool> loginUser(
+      BuildContext context, String username, String password) async {
+    final url = Uri.parse('http://$ip:5000/api/auth/login');
 
     try {
       final response = await http.post(
@@ -32,15 +33,17 @@ class LoginController {
           final email = responseBody['email'];
 
           // отправка 2FA кода на почту
-          await http.post(
-            Uri.parse('http://$ip:5000/send-2fa-code'),
+          final send2faResponse = await http.post(
+            Uri.parse('http://$ip:5000/api/auth/send-2fa-code'),
             headers: {"Content-Type": "application/json"},
             body: jsonEncode({"email": email}),
           );
 
+
+
           // переход на экран ввода кода
           Navigator.push(
-            context,
+            context,  
             MaterialPageRoute(
               builder: (_) => TwoFactorVerifyScreen(email: email),
             ),

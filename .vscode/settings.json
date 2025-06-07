@@ -3,5 +3,6 @@
   "java.configuration.runtimes": [],
   "cSpell.words": [
     "allprojects"
-  ]
+  ],
+  "cmake.sourceDirectory": "C:/projects/bnm_edu/linux"
 }

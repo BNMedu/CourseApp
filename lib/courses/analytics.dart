@@ -28,8 +28,9 @@ class _ProgressAnalyticsScreenState extends State<ProgressAnalyticsScreen> {
 
     if (token == null) return;
 
+    // --- Новый путь!
     final response = await http.get(
-      Uri.parse("http://$ip:5000/progress"),
+      Uri.parse("http://$ip:5000/api/courses/progress/me"),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -38,8 +39,6 @@ class _ProgressAnalyticsScreenState extends State<ProgressAnalyticsScreen> {
       final courseProgress = data['progress'][widget.course];
       print("DEBUG course: ${widget.course}");
       print("DEBUG full response: ${response.body}");
-      print("DEBUG course: ${widget.course}"); // Должно быть 'web'
-
 
       if (courseProgress == null) {
         setState(() {

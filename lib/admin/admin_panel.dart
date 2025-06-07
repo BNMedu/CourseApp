@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:bnm_edu/account/account.dart';
 import 'package:bnm_edu/admin/admin_edit.dart';
 import 'package:bnm_edu/admin/admin_news_edit.dart';
 import 'package:bnm_edu/admin/admin_registration.dart';
@@ -15,7 +16,6 @@ class AddCourseScreen extends StatefulWidget {
 
 class _AddCourseScreenState extends State<AddCourseScreen> {
   final _idController = TextEditingController();
-  final _videoIdController = TextEditingController();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _courseTitleController = TextEditingController();
@@ -52,7 +52,6 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
 
   Future<void> submitCourse() async {
     if (_idController.text.isEmpty ||
-        _videoIdController.text.isEmpty ||
         _titleController.text.isEmpty ||
         _descriptionController.text.isEmpty ||
         _courseTitleController.text.isEmpty ||
@@ -67,7 +66,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token");
 
-    final url = Uri.parse('http://$ip:5000/course/');
+    final url = Uri.parse('http://$ip:5000/api/courses/');
     final body = {
       "_id": _idController.text.trim(),
       "title": _titleController.text.trim(),
@@ -94,7 +93,6 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
           SnackBar(content: Text('Course added successfully')),
         );
         _idController.clear();
-        _videoIdController.clear();
         _titleController.clear();
         _descriptionController.clear();
         _courseTitleController.clear();
@@ -147,7 +145,8 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
           ),
           SizedBox(height: 6),
           Text(label,
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
         ],
       ),
     );
@@ -157,7 +156,9 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         title: Text('Add Course'),
+        centerTitle: true,
         flexibleSpace: Container(
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -173,7 +174,6 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
         child: Column(
           children: [
             buildTextField(_idController, 'Course ID'),
-            buildTextField(_videoIdController, 'Video ID'),
             buildTextField(_titleController, 'Lesson Title'),
             buildTextField(_descriptionController, 'Lesson Description',
                 maxLines: 3),
@@ -233,15 +233,20 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
               child: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.blueAccent, Color.fromARGB(255, 202, 138, 213)],
+                    colors: [
+                      Colors.blueAccent,
+                      Color.fromARGB(255, 202, 138, 213)
+                    ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 padding: EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                child: Wrap(
+                  spacing: 28,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.center,
                   children: [
                     _buildNavIcon(
                       icon: Icons.person_add,
@@ -273,11 +278,21 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                       },
                     ),
                     _buildNavIcon(
+                      icon: Icons.account_box,
+                      label: 'Account',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => AccountScreen()),
+                        );
+                      },
+                    ),
+                    _buildNavIcon(
                       icon: Icons.newspaper,
                       label: 'Edit News',
                       onTap: () async {
                         final prefs = await SharedPreferences.getInstance();
-                        final token = prefs.getString('jwt_token');
+                        final token = prefs.getString('token');
                         if (token == null) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('No token found')),
@@ -296,6 +311,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
                 ),
               ),
             ),
+
             SizedBox(height: 30),
           ],
         ),

@@ -21,7 +21,7 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
     String? token = prefs.getString('token');
 
     final response = await http.put(
-      Uri.parse('http://${ip}:5000/account/change-password'),
+      Uri.parse('http://${ip}:5000/api/users/change-password'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json'

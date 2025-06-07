@@ -1,7 +1,10 @@
 import 'dart:convert';
 
+import 'package:bnm_edu/main/global.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+
+// Replace with your actual IP for backend if needed
 
 class NewsScreen extends StatefulWidget {
   @override
@@ -15,11 +18,30 @@ class _NewsScreenState extends State<NewsScreen> {
   @override
   void initState() {
     super.initState();
-    _newsFuture = fetchProgrammingNews();
+    _newsFuture = fetchAllNews();
+  }
+
+  Future<List<Map<String, String>>> fetchAdminNews() async {
+    final url = Uri.parse('http://${ip}:5000/api/news');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final List news = data is List ? data : [];
+      return news.map<Map<String, String>>((item) {
+        return {
+          'title': item['title'] ?? 'No title',
+          'description': item['description'] ?? 'No description',
+          'image': item['image'] ?? '',
+        };
+      }).toList();
+    } else {
+      throw Exception('Failed to load admin news');
+    }
   }
 
   Future<List<Map<String, String>>> fetchProgrammingNews() async {
-    final apiKey = '40658f3675234df8b7286c1871ea31bb'; // 🔐 Замените на свой API ключ
+    final apiKey = '40658f3675234df8b7286c1871ea31bb'; // Your API key
     final url = Uri.parse(
         'https://newsapi.org/v2/everything?q=programming&language=en&sortBy=publishedAt&apiKey=$apiKey');
 
@@ -38,6 +60,16 @@ class _NewsScreenState extends State<NewsScreen> {
       }).toList();
     } else {
       throw Exception('Failed to load news');
+    }
+  }
+
+  Future<List<Map<String, String>>> fetchAllNews() async {
+    try {
+      final adminNews = await fetchAdminNews();
+      final apiNews = await fetchProgrammingNews();
+      return [...adminNews, ...apiNews]; // Admin news always first
+    } catch (e) {
+      return [];
     }
   }
 
@@ -76,11 +108,16 @@ class _NewsScreenState extends State<NewsScreen> {
             future: _newsFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator(color: Colors.white));
+                return Center(
+                    child: CircularProgressIndicator(color: Colors.white));
               } else if (snapshot.hasError) {
-                return Center(child: Text('Ошибка загрузки новостей', style: TextStyle(color: Colors.white)));
+                return Center(
+                    child: Text('Failed to load news',
+                        style: TextStyle(color: Colors.white)));
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return Center(child: Text('Нет новостей', style: TextStyle(color: Colors.white)));
+                return Center(
+                    child: Text('No news available',
+                        style: TextStyle(color: Colors.white)));
               }
 
               final newsList = snapshot.data!;
@@ -102,19 +139,30 @@ class _NewsScreenState extends State<NewsScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           ClipRRect(
-                            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-                            child: Image.network(
-                              news['image'] ?? '',
-                              height: 200,
-                              width: double.infinity,
-                              fit: BoxFit.cover,
-                              errorBuilder: (context, error, stackTrace) => Container(
-                                height: 200,
-                                color: Colors.grey[300],
-                                alignment: Alignment.center,
-                                child: Icon(Icons.broken_image, size: 50),
-                              ),
-                            ),
+                            borderRadius:
+                                BorderRadius.vertical(top: Radius.circular(20)),
+                            child: news['image'] != null &&
+                                    news['image']!.isNotEmpty
+                                ? Image.network(
+                                    news['image']!,
+                                    height: 200,
+                                    width: double.infinity,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            Container(
+                                      height: 200,
+                                      color: Colors.grey[300],
+                                      alignment: Alignment.center,
+                                      child: Icon(Icons.broken_image, size: 50),
+                                    ),
+                                  )
+                                : Container(
+                                    height: 200,
+                                    color: Colors.grey[300],
+                                    alignment: Alignment.center,
+                                    child: Icon(Icons.broken_image, size: 50),
+                                  ),
                           ),
                           Padding(
                             padding: const EdgeInsets.all(20.0),
@@ -122,7 +170,7 @@ class _NewsScreenState extends State<NewsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  news['title']!,
+                                  news['title'] ?? '',
                                   style: TextStyle(
                                     fontSize: 22,
                                     fontWeight: FontWeight.bold,
@@ -131,8 +179,9 @@ class _NewsScreenState extends State<NewsScreen> {
                                 ),
                                 SizedBox(height: 10),
                                 Text(
-                                  news['description']!,
-                                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                                  news['description'] ?? '',
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.black54),
                                 ),
                               ],
                             ),

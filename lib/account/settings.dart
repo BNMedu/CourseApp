@@ -25,7 +25,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (token == null) return;
 
     final response = await http.get(
-      Uri.parse("http://$ip:5000/account"),
+      Uri.parse("http://$ip:5000/api/users/profile"),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -41,16 +41,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     String? token = prefs.getString('token');
     if (token == null) return;
-
     final response = await http.put(
-      Uri.parse("http://$ip:5000/account/update"),
+      Uri.parse("http://$ip:5000/api/users/profile"),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
       },
-      body: jsonEncode({
-        "twoFactorEnabled": newValue
-      }),
+      body: jsonEncode({"twoFactorEnabled": newValue}),
     );
 
     if (response.statusCode == 200) {
@@ -102,7 +99,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
                   children: [
                     Text(
                       "Two-Factor Authentication",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                     ),
                     Switch(
                       value: isTwoFactorEnabled,

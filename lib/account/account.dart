@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:bnm_edu/account/change_password.dart';
 import 'package:bnm_edu/account/edit_profile.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../main/global.dart';
@@ -16,7 +18,11 @@ class AccountScreen extends StatefulWidget {
 class _AccountScreenState extends State<AccountScreen> {
   String? username, role, birthDate, city, phone, course;
   String? father, mother;
+  String? avatarUrl;
   int _currentIndex = 2;
+  File? _newAvatar;
+  bool _uploading = false;
+  final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
@@ -33,8 +39,9 @@ class _AccountScreenState extends State<AccountScreen> {
       return;
     }
 
+    // Новый путь!
     final response = await http.get(
-      Uri.parse('http://${ip}:5000/account'),
+      Uri.parse('http://${ip}:5000/api/users/profile'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -49,6 +56,7 @@ class _AccountScreenState extends State<AccountScreen> {
         course = data['course'];
         father = data['parentNames']?['father'];
         mother = data['parentNames']?['mother'];
+        avatarUrl = data['avatarUrl'];
       });
     }
   }
@@ -64,6 +72,48 @@ class _AccountScreenState extends State<AccountScreen> {
         Divider(),
       ],
     );
+  }
+
+  Future<void> _pickAvatar() async {
+    final picked = await _picker.pickImage(source: ImageSource.gallery);
+    if (picked != null) {
+      setState(() {
+        _newAvatar = File(picked.path);
+      });
+      await _uploadAvatar();
+    }
+  }
+
+  Future<void> _uploadAvatar() async {
+    setState(() => _uploading = true);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+    if (token == null || _newAvatar == null) return;
+
+    // Новый путь!
+    var uri = Uri.parse('http://$ip:5000/api/users/avatar');
+    var request = http.MultipartRequest('POST', uri);
+    request.headers['Authorization'] = 'Bearer $token';
+    request.files.add(
+      await http.MultipartFile.fromPath('avatar', _newAvatar!.path),
+    );
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      final respStr = await response.stream.bytesToString();
+      final jsonResp = jsonDecode(respStr);
+      setState(() {
+        avatarUrl = jsonResp['avatarUrl'];
+        _newAvatar = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Аватарка обновлена!')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Ошибка загрузки аватарки')),
+      );
+    }
+    setState(() => _uploading = false);
   }
 
   @override
@@ -116,16 +166,51 @@ class _AccountScreenState extends State<AccountScreen> {
                 padding: const EdgeInsets.all(24.0),
                 child: Column(
                   children: [
-                    CircleAvatar(
-                      radius: 45,
-                      backgroundColor: Colors.blueAccent,
-                      child: Icon(Icons.person, size: 60, color: Colors.white),
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 50,
+                          backgroundColor: Colors.blueAccent,
+                          backgroundImage: _newAvatar != null
+                              ? FileImage(_newAvatar!)
+                              : (avatarUrl != null && avatarUrl!.isNotEmpty
+                                  ? NetworkImage(avatarUrl!)
+                                  : null),
+                          child: (avatarUrl == null && _newAvatar == null)
+                              ? Icon(Icons.person, size: 60, color: Colors.white)
+                              : null,
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: InkWell(
+                            onTap: _uploading ? null : _pickAvatar,
+                            child: CircleAvatar(
+                              radius: 18,
+                              backgroundColor: Colors.white,
+                              child: Icon(Icons.camera_alt,
+                                  color: Colors.blueAccent, size: 22),
+                            ),
+                          ),
+                        ),
+                        if (_uploading)
+                          Positioned.fill(
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Colors.black26,
+                                shape: BoxShape.circle,
+                              ),
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     SizedBox(height: 16),
                     Text(
                       username ?? 'Loading...',
-                      style:
-                          TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
                     if (role != null)
                       Text('Role: $role',

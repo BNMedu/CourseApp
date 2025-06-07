@@ -44,7 +44,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     String? token = prefs.getString('token');
 
     final response = await http.put(
-      Uri.parse('http://${ip}:5000/account/update'),
+      Uri.parse('http://${ip}:5000/api/users/update'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json'
@@ -110,7 +110,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Card(
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20)),
               elevation: 12,
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
