@@ -17,7 +17,6 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
   final descController = TextEditingController();
   final imageController = TextEditingController();
   final tagsController = TextEditingController();
-
   final tagSearchController = TextEditingController();
 
   bool loading = false;
@@ -26,7 +25,6 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
 
   List<Map<String, dynamic>> foundNews = [];
 
-  // Поиск новостей по тегу
   Future<void> findNewsByTag() async {
     final tag = tagSearchController.text.trim();
     if (tag.isEmpty) return;
@@ -44,18 +42,17 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
       });
       if (data.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Новости не найдены')),
+          SnackBar(content: Text('No news found')),
         );
       }
     } else {
       setState(() => foundNews = []);
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка: ${response.body}')),
+        SnackBar(content: Text('Error: ${response.body}')),
       );
     }
   }
 
-  // Заполнить поля для редактирования
   void fillForEdit(Map<String, dynamic> news) {
     setState(() {
       titleController.text = news['title'] ?? '';
@@ -67,20 +64,18 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
     });
   }
 
-  // Добавить новость
   Future<void> submitNews() async {
     FocusScope.of(context).unfocus();
     setState(() => loading = true);
 
     final response = await http.post(
-      Uri.parse('https://$ip/api/news'),
+      Uri.parse('https://$ip/api/news/'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ${widget.token}',
       },
       body: json.encode({
-        '_id':
-            DateTime.now().millisecondsSinceEpoch.toString(), // генерируем id
+        '_id': DateTime.now().millisecondsSinceEpoch.toString(),
         'title': titleController.text,
         'description': descController.text,
         'image': imageController.text,
@@ -108,7 +103,6 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
     }
   }
 
-  // Редактировать новость
   Future<void> editNews() async {
     setState(() => loading = true);
     final response = await http.put(
@@ -143,7 +137,6 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
     }
   }
 
-  // Удалить новость
   Future<void> deleteNews(String id) async {
     setState(() => loading = true);
     final response = await http.delete(
@@ -240,8 +233,7 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ---- Поиск по тегу ----
-                  buildTextField(tagSearchController, 'Поиск новостей по тегу'),
+                  buildTextField(tagSearchController, 'Search news by tag'),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -255,17 +247,15 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
                         ),
                         elevation: 0,
                       ),
-                      child: Text('Найти новости по тегу'),
+                      child: Text('Search'),
                     ),
                   ),
                   SizedBox(height: 18),
-
-                  // ---- Список найденных новостей ----
                   if (foundNews.isNotEmpty)
                     Column(
                       children: [
                         Text(
-                          'Результаты поиска:',
+                          'Search results:',
                           style: TextStyle(
                               fontWeight: FontWeight.bold, fontSize: 15),
                         ),
@@ -306,7 +296,7 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
                                     ),
                                     SizedBox(height: 5),
                                     Text(
-                                      'Теги: ${(news['tags'] as List?)?.join(', ') ?? ''}',
+                                      'Tags: ${(news['tags'] as List?)?.join(', ') ?? ''}',
                                       style: TextStyle(
                                           fontSize: 12, color: Colors.black54),
                                     ),
@@ -317,14 +307,14 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
                                           onPressed: loading
                                               ? null
                                               : () => fillForEdit(news),
-                                          child: Text('Изменить'),
+                                          child: Text('Edit'),
                                         ),
                                         TextButton(
                                           onPressed: loading
                                               ? null
                                               : () => deleteNews(news['_id']),
                                           child: Text(
-                                            'Удалить',
+                                            'Delete',
                                             style: TextStyle(color: Colors.red),
                                           ),
                                         ),
@@ -337,13 +327,11 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
                         Divider(),
                       ],
                     ),
-
-                  // ---- Поля для добавления/редактирования новости ----
-                  buildTextField(titleController, 'Заголовок'),
-                  buildTextField(descController, 'Описание', maxLines: 3),
+                  buildTextField(titleController, 'Title'),
+                  buildTextField(descController, 'Description', maxLines: 3),
                   buildTextField(
-                      imageController, 'Ссылка на изображение (опционально)'),
-                  buildTextField(tagsController, 'Теги (через запятую)'),
+                      imageController, 'Image URL (optional)'),
+                  buildTextField(tagsController, 'Tags (comma separated)'),
                   SizedBox(height: 22),
                   SizedBox(
                     width: double.infinity,
@@ -391,8 +379,8 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
                                 )
                               : Text(
                                   editMode
-                                      ? 'Сохранить изменения'
-                                      : 'Опубликовать',
+                                      ? 'Save changes'
+                                      : 'Publish',
                                   style: TextStyle(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 16,
@@ -420,7 +408,7 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
                           elevation: 0,
                         ),
                         child: Text(
-                          'Отмена',
+                          'Cancel',
                           style: TextStyle(
                             fontWeight: FontWeight.w500,
                             fontSize: 16,

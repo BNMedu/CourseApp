@@ -24,8 +24,7 @@ class _TeacherAnswersScreenState extends State<TeacherAnswersScreen> {
 
   Future<void> fetchAnswers() async {
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('token');
-
+    final token = prefs.getString('token') ?? '';
     final response = await http.get(
       Uri.parse("https://$ip/teacher/answers"),
       headers: {'Authorization': 'Bearer $token'},
@@ -37,12 +36,38 @@ class _TeacherAnswersScreenState extends State<TeacherAnswersScreen> {
         isLoading = false;
       });
     } else {
+      setState(() => isLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Не удалось загрузить ответы: ${response.body}")),
+      );
+    }
+  }
+
+  Future<void> approveAnswer(dynamic item) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? '';
+    final response = await http.post(
+      Uri.parse("https://$ip/teacher/approve-answer"),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json'
+      },
+      body: jsonEncode({
+        'email': item['email'],
+        'lessonId': item['lessonId'],
+      }),
+    );
+
+    if (response.statusCode == 200) {
       setState(() {
-        isLoading = false;
+        item['teacherFeedback'] = 'approved';
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-            content: Text("Не удалось загрузить ответы: ${response.body}")),
+        SnackBar(content: Text('Ответ одобрен')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Не удалось одобрить')),
       );
     }
   }
@@ -51,12 +76,16 @@ class _TeacherAnswersScreenState extends State<TeacherAnswersScreen> {
     if (index == _currentIndex) return;
     setState(() => _currentIndex = index);
 
-    if (index == 0) {
-      Navigator.pushReplacementNamed(context, '/home');
-    } else if (index == 1) {
-      Navigator.pushReplacementNamed(context, '/courses');
-    } else if (index == 2) {
-      Navigator.pushReplacementNamed(context, '/account');
+    switch (index) {
+      case 0:
+        Navigator.pushReplacementNamed(context, '/home');
+        break;
+      case 1:
+        Navigator.pushReplacementNamed(context, '/courses');
+        break;
+      case 2:
+        Navigator.pushReplacementNamed(context, '/account');
+        break;
     }
   }
 
@@ -64,7 +93,7 @@ class _TeacherAnswersScreenState extends State<TeacherAnswersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Answers"),
+        title: Text("Student Answers"),
         backgroundColor: Colors.transparent,
         flexibleSpace: Container(
           decoration: BoxDecoration(
@@ -84,54 +113,62 @@ class _TeacherAnswersScreenState extends State<TeacherAnswersScreen> {
                   itemCount: answers.length,
                   itemBuilder: (context, index) {
                     final item = answers[index];
+                    final projectLinks = List<String>.from(item['projectLinks'] ?? []);
+                    final progressMap = item['progress'] as Map<String, dynamic>? ?? {};
+
                     return Card(
                       margin: EdgeInsets.all(10),
                       elevation: 4,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
-                      child: ListTile(
-                        title: Text(
-                            "${item['username']} — Урок ${item['lessonId']}"),
-                        subtitle: Text("Оценка: ${item['score']}"),
-                        trailing: item['teacherFeedback'] == 'approved'
-                            ? Icon(Icons.check_circle, color: Colors.green)
-                            : IconButton(
-                                icon: Icon(Icons.check,
-                                    color: Colors.orangeAccent),
-                                tooltip: 'Approve',
-                                onPressed: () async {
-                                  final prefs =
-                                      await SharedPreferences.getInstance();
-                                  final token = prefs.getString('token');
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Заголовок с именем и уроком
+                            Text(
+                              "${item['username']} — ${item['lessonId']}",
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 8),
 
-                                  final response = await http.post(
-                                    Uri.parse(
-                                        "https://$ip/teacher/approve-answer"),
-                                    headers: {
-                                      'Authorization': 'Bearer $token',
-                                      'Content-Type': 'application/json'
-                                    },
-                                    body: jsonEncode({
-                                      'email': item['email'],
-                                      'lessonId': item['lessonId']
-                                    }),
-                                  );
+                            // Оценка
+                            Text("Оценка: ${item['score']}"),
 
-                                  if (response.statusCode == 200) {
-                                    setState(() {
-                                      item['teacherFeedback'] = 'approved';
-                                    });
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(content: Text('Approved')),
-                                    );
-                                  } else {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                          content: Text('Failed to approve')),
-                                    );
-                                  }
-                                },
-                              ),
+                            // Проекты из самого ответа
+                            if (projectLinks.isNotEmpty) ...[
+                              SizedBox(height: 4),
+                              Text("Присланные проекты: ${projectLinks.join(', ')}"),
+                            ],
+
+                            // Все проекты из progress
+                            for (final courseKey in progressMap.keys) ...[
+                              if ((progressMap[courseKey]['projectsSubmitted'] as List).isNotEmpty) ...[
+                                SizedBox(height: 4),
+                                Text(
+                                  "Все проекты [$courseKey]: " +
+                                      (progressMap[courseKey]['projectsSubmitted']
+                                              as List)
+                                          .join(', '),
+                                ),
+                              ]
+                            ],
+
+                            // Кнопка Approve / иконка
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: item['teacherFeedback'] == 'approved'
+                                  ? Icon(Icons.check_circle, color: Colors.green)
+                                  : TextButton.icon(
+                                      onPressed: () => approveAnswer(item),
+                                      icon: Icon(Icons.check, color: Colors.orange),
+                                      label: Text("Approve"),
+                                    ),
+                            ),
+                          ],
+                        ),
                       ),
                     );
                   },
