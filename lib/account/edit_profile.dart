@@ -44,7 +44,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     String? token = prefs.getString('token');
 
     final response = await http.put(
-      Uri.parse('http://${ip}:5000/api/users/update'),
+      Uri.parse('https://${ip}/api/users/update'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json'

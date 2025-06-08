@@ -33,7 +33,7 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
     setState(() => loading = true);
 
     final response = await http.get(
-      Uri.parse('http://$ip:5000/api/news?tag=$tag'),
+      Uri.parse('https://$ip/api/news?tag=$tag'),
     );
     setState(() => loading = false);
 
@@ -73,7 +73,7 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
     setState(() => loading = true);
 
     final response = await http.post(
-      Uri.parse('http://$ip:5000/api/news'),
+      Uri.parse('https://$ip/api/news'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ${widget.token}',
@@ -112,7 +112,7 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
   Future<void> editNews() async {
     setState(() => loading = true);
     final response = await http.put(
-      Uri.parse('http://$ip:5000/api/news/$editingId'),
+      Uri.parse('https://$ip/api/news/$editingId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ${widget.token}',
@@ -147,7 +147,7 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
   Future<void> deleteNews(String id) async {
     setState(() => loading = true);
     final response = await http.delete(
-      Uri.parse('http://$ip:5000/api/news/$id'),
+      Uri.parse('https://$ip/api/news/$id'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
       },

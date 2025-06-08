@@ -104,7 +104,7 @@ class _AdminEditScreenState extends State<AdminEditScreen> {
     if (token == null) return;
 
     final response = await http.get(
-      Uri.parse('http://$ip:5000/api/users/account-by-email?email=$email'),
+      Uri.parse('https://$ip/api/users/account-by-email?email=$email'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -186,7 +186,7 @@ class _AdminEditScreenState extends State<AdminEditScreen> {
     setState(() => isLoading = true);
 
     final response = await http.put(
-      Uri.parse('http://$ip:5000/api/admin/update-user'),
+      Uri.parse('https://$ip/api/admin/update-user'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json'

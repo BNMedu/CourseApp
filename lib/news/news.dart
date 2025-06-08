@@ -22,7 +22,7 @@ class _NewsScreenState extends State<NewsScreen> {
   }
 
   Future<List<Map<String, String>>> fetchAdminNews() async {
-    final url = Uri.parse('http://${ip}:5000/api/news');
+    final url = Uri.parse('https://${ip}/api/news');
     final response = await http.get(url);
 
     if (response.statusCode == 200) {

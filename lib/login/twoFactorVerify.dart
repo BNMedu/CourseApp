@@ -27,7 +27,7 @@ class _TwoFactorVerifyScreenState extends State<TwoFactorVerifyScreen> {
     });
 
     final response = await http.post(
-      Uri.parse("http://$ip:5000/api/auth/verify-2fa-code"),
+      Uri.parse("https://$ip/api/auth/verify-2fa-code"),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({
         'email': widget.email,

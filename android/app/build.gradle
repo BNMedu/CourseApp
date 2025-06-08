@@ -1,3 +1,4 @@
+
 plugins {
     id "com.android.application"
     id "kotlin-android"
@@ -6,32 +7,30 @@ plugins {
 
 android {
     namespace = "com.example.bnm_edu"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion "29.0.13113456" // ← Указали нужную версию NDK
+    compileSdkVersion 34 // Или flutter.compileSdkVersion, но только одно!
+    ndkVersion "29.0.13113456" // Удали, если не нужен
+
+    defaultConfig {
+        applicationId "com.example.bnm_edu"
+        minSdkVersion 21           // Или flutter.minSdkVersion
+        targetSdkVersion 34     // Или flutter.targetSdkVersion
+        versionCode 1              // Или flutter.versionCode
+        versionName "1.0"          // Или flutter.versionName
+        multiDexEnabled true
+    }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
         jvmTarget = "17"
     }
 
-    defaultConfig {
-        applicationId = "com.example.bnm_edu"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
-
-        // Это нужно, если у тебя много зависимостей (например, inappwebview)
-        multiDexEnabled true
-    }
-
     buildTypes {
         release {
-            signingConfig = signingConfigs.debug
+            signingConfig signingConfigs.debug
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -41,33 +40,4 @@ android {
 
 flutter {
     source = "../.."
-}
-
-allprojects {
-    repositories {
-        google()
-        mavenCentral()
-    }
-}
-
-rootProject.buildDir = "../build"
-
-subprojects {
-    afterEvaluate { project ->
-        if (project.hasProperty('android')) {
-            project.android {
-                if (namespace == null) {
-                    namespace project.group
-                }
-            }
-        }
-    }
-}
-
-subprojects {
-    project.buildDir = "${rootProject.buildDir}/${project.name}"
-}
-
-subprojects {
-    project.evaluationDependsOn(":app")
 }

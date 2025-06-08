@@ -30,7 +30,7 @@ class _ProgressAnalyticsScreenState extends State<ProgressAnalyticsScreen> {
 
     // --- Новый путь!
     final response = await http.get(
-      Uri.parse("http://$ip:5000/api/courses/progress/me"),
+      Uri.parse("https://$ip/api/courses/progress/me"),
       headers: {'Authorization': 'Bearer $token'},
     );
 

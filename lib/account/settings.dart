@@ -25,7 +25,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     if (token == null) return;
 
     final response = await http.get(
-      Uri.parse("http://$ip:5000/api/users/profile"),
+      Uri.parse("https://$ip/api/users/profile"),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -42,7 +42,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
     String? token = prefs.getString('token');
     if (token == null) return;
     final response = await http.put(
-      Uri.parse("http://$ip:5000/api/users/profile"),
+      Uri.parse("https://$ip/api/users/profile"),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',

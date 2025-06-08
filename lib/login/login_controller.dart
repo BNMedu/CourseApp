@@ -17,7 +17,7 @@ class LoginController {
   // Авторизация пользователя с 2FA
   Future<bool> loginUser(
       BuildContext context, String username, String password) async {
-    final url = Uri.parse('http://$ip:5000/api/auth/login');
+    final url = Uri.parse('https://$ip/api/auth/login');
 
     try {
       final response = await http.post(
@@ -25,6 +25,17 @@ class LoginController {
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({"username": username, "password": password}),
       );
+
+      print('Status code: ${response.statusCode}');
+      print('Body: ${response.body}');
+
+      // Не пытаемся парсить пустой ответ!
+      if (response.body.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Сервер вернул пустой ответ. Проверьте адрес и данные.")),
+        );
+        return false;
+      }
 
       final responseBody = jsonDecode(response.body);
 
@@ -34,16 +45,14 @@ class LoginController {
 
           // отправка 2FA кода на почту
           final send2faResponse = await http.post(
-            Uri.parse('http://$ip:5000/api/auth/send-2fa-code'),
+            Uri.parse('https://$ip/api/auth/send-2fa-code'),
             headers: {"Content-Type": "application/json"},
             body: jsonEncode({"email": email}),
           );
 
-
-
           // переход на экран ввода кода
           Navigator.push(
-            context,  
+            context,
             MaterialPageRoute(
               builder: (_) => TwoFactorVerifyScreen(email: email),
             ),
@@ -69,12 +78,14 @@ class LoginController {
 
         return true;
       } else {
+        // В случае ошибки сервера, выводим сообщение
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(responseBody['message'] ?? 'Login failed')),
         );
         return false;
       }
     } catch (error) {
+      print("ERROR: $error");
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Connection error: $error")),
       );

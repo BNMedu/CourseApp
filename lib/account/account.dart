@@ -41,7 +41,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
     // Новый путь!
     final response = await http.get(
-      Uri.parse('http://${ip}:5000/api/users/profile'),
+      Uri.parse('https://${ip}/api/users/profile'),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -91,7 +91,7 @@ class _AccountScreenState extends State<AccountScreen> {
     if (token == null || _newAvatar == null) return;
 
     // Новый путь!
-    var uri = Uri.parse('http://$ip:5000/api/users/avatar');
+    var uri = Uri.parse('https://$ip/api/users/avatar');
     var request = http.MultipartRequest('POST', uri);
     request.headers['Authorization'] = 'Bearer $token';
     request.files.add(

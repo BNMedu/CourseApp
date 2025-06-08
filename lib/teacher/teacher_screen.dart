@@ -27,7 +27,7 @@ class _TeacherAnswersScreenState extends State<TeacherAnswersScreen> {
     final token = prefs.getString('token');
 
     final response = await http.get(
-      Uri.parse("http://$ip:5000/teacher/answers"),
+      Uri.parse("https://$ip/teacher/answers"),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -106,7 +106,7 @@ class _TeacherAnswersScreenState extends State<TeacherAnswersScreen> {
 
                                   final response = await http.post(
                                     Uri.parse(
-                                        "http://$ip:5000/teacher/approve-answer"),
+                                        "https://$ip/teacher/approve-answer"),
                                     headers: {
                                       'Authorization': 'Bearer $token',
                                       'Content-Type': 'application/json'

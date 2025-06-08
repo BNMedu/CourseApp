@@ -66,7 +66,7 @@ class _AddCourseScreenState extends State<AddCourseScreen> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token");
 
-    final url = Uri.parse('http://$ip:5000/api/courses/');
+    final url = Uri.parse('https://$ip/api/courses/');
     final body = {
       "_id": _idController.text.trim(),
       "title": _titleController.text.trim(),

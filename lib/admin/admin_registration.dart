@@ -94,7 +94,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString("token");
-    final url = Uri.parse('http://$ip:5000/api/auth/register');
+    final url = Uri.parse('https://$ip/api/auth/register');
 
     final Map<String, dynamic> body = {
       "username": _usernameController.text.trim(),

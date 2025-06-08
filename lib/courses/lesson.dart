@@ -62,7 +62,7 @@ class _LessonScreenState extends State<LessonScreen> {
 
     final response = await http.get(
       Uri.parse(
-          'http://$ip:5000/api/courses/check-answer?lessonId=${widget.lessonId}'),
+          'https://$ip/api/courses/check-answer?lessonId=${widget.lessonId}'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
@@ -149,7 +149,7 @@ class _LessonScreenState extends State<LessonScreen> {
     final token = prefs.getString('token');
 
     final response = await http.post(
-      Uri.parse('http://$ip:5000/api/courses/submit-answer'),
+      Uri.parse('https://$ip/api/courses/submit-answer'),
       headers: {
         'Authorization': 'Bearer $token',
         'Content-Type': 'application/json',
