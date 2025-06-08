@@ -8,7 +8,6 @@ plugins {
 android {
     namespace = "com.example.bnm_edu"
     compileSdkVersion 34 // Или flutter.compileSdkVersion, но только одно!
-    ndkVersion "29.0.13113456" // Удали, если не нужен
 
     defaultConfig {
         applicationId "com.example.bnm_edu"

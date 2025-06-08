@@ -17,7 +17,6 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
   final descController = TextEditingController();
   final imageController = TextEditingController();
   final tagsController = TextEditingController();
-
   final tagSearchController = TextEditingController();
 
   bool loading = false;
@@ -26,14 +25,13 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
 
   List<Map<String, dynamic>> foundNews = [];
 
-  // Поиск новостей по тегу
   Future<void> findNewsByTag() async {
     final tag = tagSearchController.text.trim();
     if (tag.isEmpty) return;
     setState(() => loading = true);
 
     final response = await http.get(
-      Uri.parse('https://$ip/api/news?tag=$tag'),
+      Uri.parse('http://$ip/news?tag=$tag'),
     );
     setState(() => loading = false);
 
@@ -55,7 +53,6 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
     }
   }
 
-  // Заполнить поля для редактирования
   void fillForEdit(Map<String, dynamic> news) {
     setState(() {
       titleController.text = news['title'] ?? '';
@@ -67,20 +64,18 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
     });
   }
 
-  // Добавить новость
   Future<void> submitNews() async {
     FocusScope.of(context).unfocus();
     setState(() => loading = true);
 
     final response = await http.post(
-      Uri.parse('https://$ip/api/news'),
+      Uri.parse('http://$ip/admin/news'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ${widget.token}',
       },
       body: json.encode({
-        '_id':
-            DateTime.now().millisecondsSinceEpoch.toString(), // генерируем id
+        '_id': DateTime.now().millisecondsSinceEpoch.toString(),
         'title': titleController.text,
         'description': descController.text,
         'image': imageController.text,
@@ -96,23 +91,22 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
 
     if (response.statusCode == 201 || response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('News was successfully published')),
+        SnackBar(content: Text('Новость успешно опубликована')),
       );
       clearFields();
       setState(() => editMode = false);
       findNewsByTag();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${response.body}')),
+        SnackBar(content: Text('Ошибка: ${response.body}')),
       );
     }
   }
 
-  // Редактировать новость
   Future<void> editNews() async {
     setState(() => loading = true);
     final response = await http.put(
-      Uri.parse('https://$ip/api/news/$editingId'),
+      Uri.parse('http://$ip/news/$editingId'),
       headers: {
         'Content-Type': 'application/json',
         'Authorization': 'Bearer ${widget.token}',
@@ -131,23 +125,22 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
     setState(() => loading = false);
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('News updated successfully')),
+        SnackBar(content: Text('Новость обновлена')),
       );
       clearFields();
       setState(() => editMode = false);
       findNewsByTag();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${response.body}')),
+        SnackBar(content: Text('Ошибка: ${response.body}')),
       );
     }
   }
 
-  // Удалить новость
   Future<void> deleteNews(String id) async {
     setState(() => loading = true);
     final response = await http.delete(
-      Uri.parse('https://$ip/api/news/$id'),
+      Uri.parse('http://$ip/news/$id'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
       },
@@ -155,14 +148,14 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
     setState(() => loading = false);
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('News deleted successfully')),
+        SnackBar(content: Text('Новость удалена')),
       );
       if (id == editingId) clearFields();
       setState(() => editMode = false);
       findNewsByTag();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${response.body}')),
+        SnackBar(content: Text('Ошибка: ${response.body}')),
       );
     }
   }
@@ -240,7 +233,6 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // ---- Поиск по тегу ----
                   buildTextField(tagSearchController, 'Поиск новостей по тегу'),
                   SizedBox(
                     width: double.infinity,
@@ -259,16 +251,12 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
                     ),
                   ),
                   SizedBox(height: 18),
-
-                  // ---- Список найденных новостей ----
                   if (foundNews.isNotEmpty)
                     Column(
                       children: [
-                        Text(
-                          'Результаты поиска:',
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 15),
-                        ),
+                        Text('Результаты поиска:',
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 15)),
                         ...foundNews.map((news) => Card(
                               margin: EdgeInsets.symmetric(vertical: 7),
                               shape: RoundedRectangleBorder(
@@ -291,24 +279,20 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      news['title'] ?? '',
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 15,
-                                      ),
-                                    ),
+                                    Text(news['title'] ?? '',
+                                        style: TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 15)),
                                     SizedBox(height: 3),
-                                    Text(
-                                      news['description'] ?? '',
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
+                                    Text(news['description'] ?? '',
+                                        maxLines: 2,
+                                        overflow: TextOverflow.ellipsis),
                                     SizedBox(height: 5),
                                     Text(
                                       'Теги: ${(news['tags'] as List?)?.join(', ') ?? ''}',
                                       style: TextStyle(
-                                          fontSize: 12, color: Colors.black54),
+                                          fontSize: 12,
+                                          color: Colors.black54),
                                     ),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.end,
@@ -323,10 +307,9 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
                                           onPressed: loading
                                               ? null
                                               : () => deleteNews(news['_id']),
-                                          child: Text(
-                                            'Удалить',
-                                            style: TextStyle(color: Colors.red),
-                                          ),
+                                          child: Text('Удалить',
+                                              style:
+                                                  TextStyle(color: Colors.red)),
                                         ),
                                       ],
                                     ),
@@ -337,8 +320,6 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
                         Divider(),
                       ],
                     ),
-
-                  // ---- Поля для добавления/редактирования новости ----
                   buildTextField(titleController, 'Заголовок'),
                   buildTextField(descController, 'Описание', maxLines: 3),
                   buildTextField(
@@ -353,17 +334,12 @@ class _AdminAddNewsScreenState extends State<AdminAddNewsScreen> {
                           loading ? null : (editMode ? editNews : submitNews),
                       style: ElevatedButton.styleFrom(
                         padding: EdgeInsets.symmetric(vertical: 10),
-                        backgroundColor: null,
+                        backgroundColor: Colors.transparent,
                         foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(18),
                         ),
                         elevation: 0,
-                      ).copyWith(
-                        backgroundColor:
-                            MaterialStateProperty.resolveWith<Color?>(
-                          (states) => null,
-                        ),
                       ),
                       child: Ink(
                         decoration: BoxDecoration(
