@@ -80,6 +80,7 @@ class _NewsScreenState extends State<NewsScreen> {
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(kToolbarHeight),
         child: AppBar(
+          automaticallyImplyLeading: false, 
           elevation: 0,
           centerTitle: true,
           title: Text("News", style: TextStyle(fontWeight: FontWeight.bold)),

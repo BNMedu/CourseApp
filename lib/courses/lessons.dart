@@ -78,7 +78,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       final approved = await fetchApprovedLessons();
       completedLessons.addAll(approved);
       completedLessons = completedLessons.toSet().toList(); // Убираем дубли
-      completedLessons = completedLessons.toSet().toList();
       setState(() {});
     } else {
       print("Failed to fetch progress: ${response.body}");
@@ -91,7 +90,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     if (token == null) return;
 
     final response = await http.get(
-      Uri.parse("https://$ip/api/account"),
+      Uri.parse("https://$ip/api/users/profile"),
       headers: {'Authorization': 'Bearer $token'},
     );
 
@@ -100,6 +99,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       setState(() {
         userRole = data['role'];
       });
+      print('User role: $userRole');
     } else {
       print('Failed to load user role: ${response.body}');
     }
@@ -110,7 +110,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     String? token = prefs.getString('token');
 
     final url = Uri.parse("https://$ip/api/courses/$lessonId");
-    print("Requesting lesson: $lessonId, URL: $url");
     try {
       final response = await http.get(
         url,
@@ -119,8 +118,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           'Content-Type': 'application/json',
         },
       );
-      print('Response code: ${response.statusCode}');
-      print('Response body: ${response.body}');
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       } else {
@@ -186,8 +183,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
             children: [
               if (userRole == 'teacher')
                 Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   child: ElevatedButton.icon(
                     onPressed: () {
                       Navigator.pushNamed(context, '/teacher-answers');
